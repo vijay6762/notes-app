@@ -1,0 +1,30 @@
+# Render Blueprint: deploys the FastAPI backend and the Streamlit frontend.
+# Render dashboard -> New -> Blueprint -> pick this repo.
+services:
+  - type: web
+    name: notes-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.6
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false # paste a Postgres URL (e.g. from neon.tech); leave empty for throwaway SQLite
+
+  - type: web
+    name: notes-frontend
+    runtime: python
+    plan: free
+    rootDir: frontend
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.6
+      - key: API_URL
+        sync: false # e.g. https://notes-api-xxxx.onrender.com
